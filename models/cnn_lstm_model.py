@@ -1,0 +1,2 @@
+class CNNLSTMModel:
+    pass
