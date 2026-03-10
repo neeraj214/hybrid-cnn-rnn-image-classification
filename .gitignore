@@ -1,0 +1,13 @@
+venv/
+.venv/
+__pycache__/
+.ipynb_checkpoints/
+dataset/*
+!dataset/.gitkeep
+checkpoints/
+**/checkpoints/
+models/*.pth
+models/*.pt
+*.ckpt
+*.pth
+*.pt
