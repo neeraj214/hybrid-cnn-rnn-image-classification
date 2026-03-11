@@ -5,6 +5,7 @@ import torch
 from utils.data_loader import get_data_loaders
 from models.cnn_model import CNNFeatureExtractor
 from models.rnn_model import convert_feature_map_to_sequence, FeatureSequenceLSTM
+from models.cnn_lstm_model import HybridCNNLSTMClassifier
 
 
 def train():
@@ -96,7 +97,27 @@ def verify_lstm_pipeline() -> torch.Size:
     return representation.shape
 
 
+def verify_hybrid_model() -> torch.Size:
+    """
+    End-to-end hybrid model test:
+    Input -> CNN -> sequence -> LSTM -> classifier logits
+    """
+    train_loader, _ = get_data_loaders(batch_size=32)
+    images, _ = next(iter(train_loader))
+    print(f"Input shape: {list(images.shape)}")
+
+    model = HybridCNNLSTMClassifier(num_classes=10)
+    model.eval()
+    with torch.no_grad():
+        logits = model(images)
+    print(f"Model output shape: {list(logits.shape)}")
+    print("Hybrid model pipeline OK")
+
+    return logits.shape
+
+
 if __name__ == "__main__":
     verify_dataset_pipeline()
     verify_cnn_feature_extractor()
     verify_lstm_pipeline()
+    verify_hybrid_model()
