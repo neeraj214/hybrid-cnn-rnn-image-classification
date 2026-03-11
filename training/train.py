@@ -3,6 +3,7 @@ from typing import Tuple
 import torch
 
 from utils.data_loader import get_data_loaders
+from models.cnn_model import CNNFeatureExtractor
 
 
 def train():
@@ -37,5 +38,31 @@ def verify_dataset_pipeline() -> Tuple[int, int, torch.Size]:
     return train_size, test_size, batch_shape
 
 
+def verify_cnn_feature_extractor() -> torch.Size:
+    """
+    Pass one batch through the CNN feature extractor and print output shape.
+
+    Returns
+    -------
+    torch.Size
+        Feature map shape, expected: [32, 128, 4, 4]
+    """
+    train_loader, _ = get_data_loaders(batch_size=32)
+    images, labels = next(iter(train_loader))
+
+    print(f"Input shape: {list(images.shape)}")
+
+    model = CNNFeatureExtractor()
+    model.eval()
+    with torch.no_grad():
+        features = model(images)
+
+    print(f"Feature map shape: {list(features.shape)}")
+    print("CNN feature extractor OK")
+
+    return features.shape
+
+
 if __name__ == "__main__":
     verify_dataset_pipeline()
+    verify_cnn_feature_extractor()
