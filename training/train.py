@@ -4,6 +4,7 @@ import torch
 
 from utils.data_loader import get_data_loaders
 from models.cnn_model import CNNFeatureExtractor
+from models.rnn_model import convert_feature_map_to_sequence, FeatureSequenceLSTM
 
 
 def train():
@@ -63,6 +64,39 @@ def verify_cnn_feature_extractor() -> torch.Size:
     return features.shape
 
 
+def verify_lstm_pipeline() -> torch.Size:
+    """
+    Full pipeline test:
+    1) Load one batch
+    2) CNN -> feature maps [B, 128, 4, 4]
+    3) Convert to sequence [B, 16, 128]
+    4) LSTM -> final hidden [B, 256]
+    """
+    train_loader, _ = get_data_loaders(batch_size=32)
+    images, _ = next(iter(train_loader))
+    print(f"Input shape: {list(images.shape)}")
+
+    cnn = CNNFeatureExtractor()
+    cnn.eval()
+    with torch.no_grad():
+        feature_maps = cnn(images)
+    print(f"CNN feature map: {list(feature_maps.shape)}")
+
+    # Reshape feature maps to sequence for LSTM
+    sequence = convert_feature_map_to_sequence(feature_maps)
+    print(f"Sequence tensor: {list(sequence.shape)}")
+
+    lstm = FeatureSequenceLSTM()
+    lstm.eval()
+    with torch.no_grad():
+        representation = lstm(sequence)
+    print(f"LSTM output: {list(representation.shape)}")
+    print("RNN pipeline OK")
+
+    return representation.shape
+
+
 if __name__ == "__main__":
     verify_dataset_pipeline()
     verify_cnn_feature_extractor()
+    verify_lstm_pipeline()
