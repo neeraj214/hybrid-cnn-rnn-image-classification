@@ -77,3 +77,30 @@ Implementation begins after environment setup and structure initialization. Mode
 
 ## Contributing
 Contributions are welcome! Please open an issue to discuss changes or submit a pull request.
+
+---
+
+## How to Run Training
+
+1. Create and activate a virtual environment
+
+   Windows PowerShell:
+   ```
+   python -m venv venv
+   .\venv\Scripts\Activate.ps1
+   ```
+
+2. Install dependencies
+   ```
+   python -m pip install -r requirements.txt
+   ```
+
+3. Run the training script
+   ```
+   python -m training.train
+   ```
+
+Notes:
+- The CIFAR‑10 dataset is automatically downloaded to [dataset](file:///c:/Users/neera/CNN%20and%20RNN/hybrid-cnn-rnn-image-classification/dataset).
+- Model checkpoints are saved to [models/checkpoints](file:///c:/Users/neera/CNN%20and%20RNN/hybrid-cnn-rnn-image-classification/models/checkpoints).
+- On Windows, if you encounter DataLoader worker issues, set `num_workers=0` in `get_data_loaders`.

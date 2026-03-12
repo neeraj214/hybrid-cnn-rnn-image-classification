@@ -6,6 +6,9 @@ dataset/*
 !dataset/.gitkeep
 checkpoints/
 **/checkpoints/
+!models/checkpoints/
+models/checkpoints/*
+!models/checkpoints/.gitkeep
 models/*.pth
 models/*.pt
 *.ckpt
