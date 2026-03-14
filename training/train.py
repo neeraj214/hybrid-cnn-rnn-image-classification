@@ -1,5 +1,6 @@
 from typing import Tuple
 import os
+import random
 import torch
 import torch.nn as nn
 import torch.optim as optim
@@ -14,6 +15,7 @@ from visualization.plots import (
     plot_validation_accuracy,
 )
 import json
+import numpy as np
 
 
 def train():
@@ -147,6 +149,7 @@ def train_one_epoch(
         outputs = model(images)
         loss = criterion(outputs, labels)
         loss.backward()
+        torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)
         optimizer.step()
 
         running_loss += loss.item() * images.size(0)
@@ -194,8 +197,18 @@ def run_training() -> None:
     """
     Execute the full training pipeline for the Hybrid CNN-LSTM model.
     """
+    # Reproducibility
+    seed = int(os.getenv("SEED", "42"))
+    random.seed(seed)
+    np.random.seed(seed)
+    torch.manual_seed(seed)
+    if torch.cuda.is_available():
+        torch.cuda.manual_seed_all(seed)
+    torch.backends.cudnn.deterministic = True
+    torch.backends.cudnn.benchmark = False
+
     # Allow overriding epochs via environment variable for quick demos
-    epochs = int(os.getenv("EPOCHS", "20"))
+    epochs = int(os.getenv("EPOCHS", "50"))
     batch_size = 32
     learning_rate = 0.001
 
@@ -205,21 +218,28 @@ def run_training() -> None:
     model = HybridCNNLSTMClassifier(num_classes=10).to(device)
 
     criterion = nn.CrossEntropyLoss()
-    optimizer = optim.Adam(model.parameters(), lr=learning_rate)
+    optimizer = optim.Adam(model.parameters(), lr=learning_rate, weight_decay=1e-4)
+    scheduler = optim.lr_scheduler.ReduceLROnPlateau(
+        optimizer, mode="min", patience=3, factor=0.5
+    )
 
     best_val_acc = 0.0
+    epochs_no_improve = 0
+    early_stop_patience = 10
     history_train_loss = []
     history_train_acc = []
     history_val_loss = []
     history_val_acc = []
 
     for epoch in range(1, epochs + 1):
-        print(f"Epoch {epoch}/{epochs}")
+        current_lr = optimizer.param_groups[0]["lr"]
+        print(f"Epoch {epoch}/{epochs} | LR: {current_lr:.6f}")
         train_loss, train_acc = train_one_epoch(model, train_loader, criterion, optimizer, device)
-        print(f"Train Loss: {train_loss:.4f} | Train Accuracy: {train_acc*100:.2f}%")
+        print(f"Train Loss: {train_loss:.4f} | Train Accuracy: {train_acc*100:.2f}% | LR: {current_lr:.6f}")
 
         val_loss, val_acc = evaluate(model, test_loader, criterion, device)
-        print(f"Val Loss: {val_loss:.4f} | Val Accuracy: {val_acc*100:.2f}%")
+        print(f"Val Loss: {val_loss:.4f} | Val Accuracy: {val_acc*100:.2f}% | LR: {current_lr:.6f}")
+        scheduler.step(val_loss)
 
         history_train_loss.append(train_loss)
         history_train_acc.append(train_acc)
@@ -235,12 +255,20 @@ def run_training() -> None:
             ckpt_path = os.path.join(ckpt_dir, "cnn_lstm_model.pth")
             torch.save(model.state_dict(), ckpt_path)
             print(f"Saved best model checkpoint to: {ckpt_path} (Val Acc: {best_val_acc*100:.2f}%)")
+            epochs_no_improve = 0
+        else:
+            epochs_no_improve += 1
+
+        # Early stopping based on validation accuracy
+        if epochs_no_improve >= early_stop_patience:
+            print(f"Early stopping triggered after {epoch} epochs. Best Val Acc: {best_val_acc*100:.2f}%")
+            break
 
     # After training completes, save metrics and plots
     repo_root = os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir))
     metrics_path = os.path.join(repo_root, "training_metrics.json")
     metrics_payload = {
-        "epochs": list(range(1, epochs + 1)),
+        "epochs": list(range(1, len(history_train_loss) + 1)),
         "train_loss": history_train_loss,
         "train_accuracy": history_train_acc,
         "val_loss": history_val_loss,
