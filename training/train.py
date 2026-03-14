@@ -8,6 +8,12 @@ from utils.data_loader import get_data_loaders
 from models.cnn_model import CNNFeatureExtractor
 from models.rnn_model import convert_feature_map_to_sequence, FeatureSequenceLSTM
 from models.cnn_lstm_model import HybridCNNLSTMClassifier
+from visualization.plots import (
+    plot_training_loss,
+    plot_training_accuracy,
+    plot_validation_accuracy,
+)
+import json
 
 
 def train():
@@ -188,7 +194,8 @@ def run_training() -> None:
     """
     Execute the full training pipeline for the Hybrid CNN-LSTM model.
     """
-    epochs = 20
+    # Allow overriding epochs via environment variable for quick demos
+    epochs = int(os.getenv("EPOCHS", "20"))
     batch_size = 32
     learning_rate = 0.001
 
@@ -200,6 +207,12 @@ def run_training() -> None:
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.Adam(model.parameters(), lr=learning_rate)
 
+    best_val_acc = 0.0
+    history_train_loss = []
+    history_train_acc = []
+    history_val_loss = []
+    history_val_acc = []
+
     for epoch in range(1, epochs + 1):
         print(f"Epoch {epoch}/{epochs}")
         train_loss, train_acc = train_one_epoch(model, train_loader, criterion, optimizer, device)
@@ -208,13 +221,43 @@ def run_training() -> None:
         val_loss, val_acc = evaluate(model, test_loader, criterion, device)
         print(f"Val Loss: {val_loss:.4f} | Val Accuracy: {val_acc*100:.2f}%")
 
-    # Save checkpoint
+        history_train_loss.append(train_loss)
+        history_train_acc.append(train_acc)
+        history_val_loss.append(val_loss)
+        history_val_acc.append(val_acc)
+
+        # Save best checkpoint based on validation accuracy
+        if val_acc >= best_val_acc:
+            best_val_acc = val_acc
+            repo_root = os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir))
+            ckpt_dir = os.path.join(repo_root, "models", "checkpoints")
+            os.makedirs(ckpt_dir, exist_ok=True)
+            ckpt_path = os.path.join(ckpt_dir, "cnn_lstm_model.pth")
+            torch.save(model.state_dict(), ckpt_path)
+            print(f"Saved best model checkpoint to: {ckpt_path} (Val Acc: {best_val_acc*100:.2f}%)")
+
+    # After training completes, save metrics and plots
     repo_root = os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir))
-    ckpt_dir = os.path.join(repo_root, "models", "checkpoints")
-    os.makedirs(ckpt_dir, exist_ok=True)
-    ckpt_path = os.path.join(ckpt_dir, "cnn_lstm_model.pth")
-    torch.save(model.state_dict(), ckpt_path)
-    print(f"Model saved to: {ckpt_path}")
+    metrics_path = os.path.join(repo_root, "training_metrics.json")
+    metrics_payload = {
+        "epochs": list(range(1, epochs + 1)),
+        "train_loss": history_train_loss,
+        "train_accuracy": history_train_acc,
+        "val_loss": history_val_loss,
+        "val_accuracy": history_val_acc,
+        "best_val_accuracy": best_val_acc,
+    }
+    with open(metrics_path, "w", encoding="utf-8") as f:
+        json.dump(metrics_payload, f, indent=2)
+    print(f"Training metrics saved to: {metrics_path}")
+
+    # Generate plots
+    viz_dir = os.path.join(repo_root, "visualization")
+    os.makedirs(viz_dir, exist_ok=True)
+    plot_training_loss(history_train_loss, os.path.join(viz_dir, "training_loss.png"))
+    plot_training_accuracy(history_train_acc, os.path.join(viz_dir, "training_accuracy.png"))
+    plot_validation_accuracy(history_val_acc, os.path.join(viz_dir, "validation_accuracy.png"))
+    print(f"Training plots saved to: {viz_dir}")
 
 
 if __name__ == "__main__":
