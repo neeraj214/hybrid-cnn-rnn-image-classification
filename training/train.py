@@ -178,8 +178,8 @@ def evaluate(
 
     with torch.no_grad():
         for images, labels in loader:
-            images = images.to(device)
-            labels = labels.to(device)
+            images = images.to(device, non_blocking=True)
+            labels = labels.to(device, non_blocking=True)
             outputs = model(images)
             loss = criterion(outputs, labels)
 
