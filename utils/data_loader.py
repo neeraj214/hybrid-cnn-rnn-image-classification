@@ -21,20 +21,34 @@ def _project_data_dir() -> str:
     return data_dir
 
 
-def _build_transforms() -> transforms.Compose:
+def _train_transforms() -> transforms.Compose:
     """
-    Compose the preprocessing pipeline for CIFAR-10:
-    - Resize to 32x32
-    - Convert to tensor
+    Training-time augmentations for CIFAR-10:
+    - RandomCrop(32, padding=4)
+    - RandomHorizontalFlip()
+    - RandomRotation(10)
+    - ToTensor()
     - Normalize with CIFAR-10 mean/std
     """
-    return transforms.Compose(
-        [
-            transforms.Resize((32, 32)),
-            transforms.ToTensor(),
-            transforms.Normalize(mean=MEAN, std=STD),
-        ]
-    )
+    return transforms.Compose([
+        transforms.RandomCrop(32, padding=4),
+        transforms.RandomHorizontalFlip(),
+        transforms.RandomRotation(10),
+        transforms.ToTensor(),
+        transforms.Normalize(mean=MEAN, std=STD),
+    ])
+
+
+def _test_transforms() -> transforms.Compose:
+    """
+    Test-time preprocessing (no augmentation):
+    - ToTensor()
+    - Normalize with CIFAR-10 mean/std
+    """
+    return transforms.Compose([
+        transforms.ToTensor(),
+        transforms.Normalize(mean=MEAN, std=STD),
+    ])
 
 
 def get_data_loaders(
@@ -61,19 +75,20 @@ def get_data_loaders(
         DataLoaders for training and test splits.
     """
     data_dir = _project_data_dir()
-    transform = _build_transforms()
+    transform_train = _train_transforms()
+    transform_test = _test_transforms()
 
     train_dataset = datasets.CIFAR10(
         root=data_dir,
         train=True,
         download=True,
-        transform=transform,
+        transform=transform_train,
     )
     test_dataset = datasets.CIFAR10(
         root=data_dir,
         train=False,
         download=True,
-        transform=transform,
+        transform=transform_test,
     )
 
     if torch.cuda.is_available():
