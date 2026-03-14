@@ -20,13 +20,15 @@ class HybridCNNLSTMClassifier(nn.Module):
         super().__init__()
         # CNN backbone
         self.cnn = CNNFeatureExtractor()
+        # Dropout after CNN feature maps
+        self.dropout_cnn = nn.Dropout2d(p=0.3)
         # LSTM over feature sequences
         self.rnn = FeatureSequenceLSTM(input_size=128, hidden_size=256, num_layers=1)
         # Classification head: 256 -> 128 -> 10
         self.classifier = nn.Sequential(
             nn.Linear(256, 128),
             nn.ReLU(inplace=True),
-            nn.Dropout(p=0.3),
+            nn.Dropout(p=0.5),
             nn.Linear(128, num_classes),
         )
 
@@ -46,6 +48,7 @@ class HybridCNNLSTMClassifier(nn.Module):
         """
         # Stage 1: CNN feature extraction
         feature_maps = self.cnn(x)
+        feature_maps = self.dropout_cnn(feature_maps)
         # Stage 2: reshape feature maps to sequence for RNN
         sequence = convert_feature_map_to_sequence(feature_maps)
         # Stage 3: LSTM to produce sequence representation
