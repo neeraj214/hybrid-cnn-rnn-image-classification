@@ -1,4 +1,5 @@
 import React from 'react';
+import ImageUpload from './components/ImageUpload';
 
 function App() {
   return (
@@ -30,15 +31,13 @@ function App() {
             <h2 className="text-3xl font-extrabold text-gray-900 mb-4">
               Welcome to the Hybrid Model Interface
             </h2>
-            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+            <p className="text-lg text-gray-600 max-w-2xl mx-auto mb-12">
               This system combines Convolutional Neural Networks for feature extraction 
               and Recurrent Neural Networks for sequential analysis in image classification tasks.
             </p>
-            <div className="mt-10 py-20 border-2 border-dashed border-gray-200 rounded-xl bg-gray-50">
-              <p className="text-gray-400 font-medium italic">
-                Main content area placeholder - Implementation in progress
-              </p>
-            </div>
+            
+            {/* Image Upload Component */}
+            <ImageUpload />
           </div>
         </div>
       </main>
