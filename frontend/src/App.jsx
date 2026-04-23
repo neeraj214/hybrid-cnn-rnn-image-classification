@@ -1,7 +1,10 @@
-import React from 'react';
+import React, { useState } from 'react';
 import ImageUpload from './components/ImageUpload';
+import ResultCard from './components/ResultCard';
 
 function App() {
+  const [result, setResult] = useState(null);
+
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
       {/* Top Navbar */}
@@ -36,8 +39,17 @@ function App() {
               and Recurrent Neural Networks for sequential analysis in image classification tasks.
             </p>
             
-            {/* Image Upload Component */}
-            <ImageUpload />
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
+              {/* Image Upload Component */}
+              <ImageUpload onResult={setResult} />
+
+              {/* Result Card Component */}
+              <ResultCard 
+                label={result?.label} 
+                confidence={result?.confidence} 
+                allScores={result?.all_scores} 
+              />
+            </div>
           </div>
         </div>
       </main>
