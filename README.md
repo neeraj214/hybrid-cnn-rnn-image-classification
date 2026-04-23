@@ -1,106 +1,81 @@
-# A Hybrid Deep Learning Approach for Image Classification using CNN and RNN
+# Hybrid CNN-RNN Image Classification System
 
-<div align="center">
+[![Python 3.12](https://img.shields.io/badge/python-3.12-blue.svg)](https://www.python.org/)
+[![PyTorch](https://img.shields.io/badge/PyTorch-2.x-ee4c2c?logo=pytorch&logoColor=white)](https://pytorch.org/)
+[![FastAPI](https://img.shields.io/badge/FastAPI-0.x-05998b?logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
+[![React](https://img.shields.io/badge/React-18.x-61dafb?logo=react&logoColor=white)](https://reactjs.org/)
+[![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-3.x-38bdf8?logo=tailwind-css&logoColor=white)](https://tailwindcss.com/)
 
-<img src="https://img.shields.io/badge/python-3.x-blue.svg" alt="Python 3.x" />
-<img src="https://img.shields.io/badge/PyTorch-2.x-ee4c2c?logo=pytorch&logoColor=white" alt="PyTorch" />
-<img src="https://img.shields.io/badge/Torchvision-0.x-orange?logo=pytorch&logoColor=white" alt="Torchvision" />
-<img src="https://img.shields.io/badge/dataset-CIFAR--10-ff8c00" alt="CIFAR-10" />
-<img src="https://img.shields.io/github/last-commit/neeraj214/hybrid-cnn-rnn-image-classification" alt="Last Commit" />
-<img src="https://img.shields.io/github/stars/neeraj214/hybrid-cnn-rnn-image-classification?style=social" alt="GitHub stars" />
-<img src="https://img.shields.io/github/forks/neeraj214/hybrid-cnn-rnn-image-classification?style=social" alt="GitHub forks" />
-<img src="https://img.shields.io/github/issues/neeraj214/hybrid-cnn-rnn-image-classification" alt="Open Issues" />
-<img src="https://img.shields.io/github/issues-pr/neeraj214/hybrid-cnn-rnn-image-classification" alt="Open PRs" />
-<img src="https://img.shields.io/badge/PRs-welcome-brightgreen.svg" alt="PRs Welcome" />
+## 1. Project Overview
+This project implements a state-of-the-art hybrid deep learning architecture designed for robust image classification on the **CIFAR-10** dataset. By combining **Convolutional Neural Networks (CNN)** for high-level spatial feature extraction and **Recurrent Neural Networks (RNN/LSTM)** for modeling sequential dependencies within feature maps, the system achieves superior performance compared to traditional standalone models.
 
-</div>
+## 2. Model Performance
+After extensive training over 50 epochs using GPU acceleration:
+- **Best Validation Accuracy**: `80.15%`
+- **Dataset**: CIFAR-10 (60,000 32x32 color images in 10 classes)
+- **Training Strategy**: Cross-Entropy Loss with Adam Optimizer and learning rate scheduling.
 
----
-
-## Project Description
-Build a hybrid deep learning architecture that combines Convolutional Neural Networks (CNN) and Recurrent Neural Networks (RNN/LSTM) for image classification. The CNN acts as a feature extractor to capture spatial patterns from images, while the RNN/LSTM learns sequential relationships from the extracted feature maps. The initial target dataset is CIFAR‑10.
-
-## Problem Statement
-Standard CNNs excel at spatial feature extraction but may underutilize temporal or sequential relationships inherent in feature maps. The goal is to explore whether modeling ordered feature sequences improves classification performance and robustness on challenging image datasets.
-
-## Proposed Architecture
-- CNN backbone produces feature maps from input images
-- Features are reshaped into sequences along spatial dimensions or channels
-- RNN/LSTM processes the sequence to capture dependencies
-- Final classification head outputs class probabilities
-
-## Technology Stack
-- Python 3.x
-- PyTorch, Torchvision
-- NumPy, Pandas
-- Scikit‑learn
-- Matplotlib, Seaborn
-- Jupyter
-
-## Initial Project Structure
-```
+## 3. Project Structure
+```text
 hybrid-cnn-rnn-image-classification/
-├── dataset/
-├── models/
-│   ├── __init__.py
-│   ├── cnn_model.py
-│   ├── rnn_model.py
-│   └── cnn_lstm_model.py
-├── training/
-│   ├── __init__.py
-│   └── train.py
-├── evaluation/
-│   ├── __init__.py
-│   └── evaluate.py
-├── visualization/
-│   ├── __init__.py
-│   └── plots.py
-├── utils/
-│   ├── __init__.py
-│   └── data_loader.py
-├── notebooks/
-│   └── experiments.ipynb
-├── requirements.txt
-├── .gitignore
-└── README.md
+├── backend/            # FastAPI server, inference logic, and API endpoints
+├── frontend/           # React (Vite) dashboard with Tailwind CSS
+├── models/             # PyTorch model definitions (CNN, RNN, Hybrid)
+│   └── checkpoints/    # Trained model weights (.pth)
+├── training/           # Training scripts and loss/accuracy tracking
+├── evaluation/         # Model testing and metric generation
+├── visualization/      # Generated plots and performance graphs
+├── utils/              # Data loaders and preprocessing helpers
+├── dataset/            # CIFAR-10 raw data (auto-downloaded)
+└── requirements.txt    # Project dependencies
 ```
 
-Implementation begins after environment setup and structure initialization. Model development is intentionally deferred.
+## 4. How to Run Locally
+
+### Prerequisites
+- Python 3.12+
+- Node.js & npm
+
+### Setup
+1. **Clone the repository**:
+   ```bash
+   git clone https://github.com/neeraj214/hybrid-cnn-rnn-image-classification.git
+   cd hybrid-cnn-rnn-image-classification
+   ```
+
+2. **Install Backend Dependencies**:
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+3. **Start the Backend (FastAPI)**:
+   ```bash
+   cd backend
+   # Set PYTHONPATH to root for model imports
+   $env:PYTHONPATH=".." # Windows PowerShell
+   uvicorn main:app --reload --port 8000
+   ```
+   *The API will be available at `http://localhost:8000`. Access `/docs` for Swagger UI.*
+
+4. **Start the Frontend (React + Vite)**:
+   ```bash
+   cd ../frontend
+   npm install
+   npm run dev
+   ```
+   *The dashboard will be available at `http://localhost:5173`.*
+
+## 5. Tech Stack
+- **Deep Learning**: PyTorch, Torchvision
+- **Backend**: FastAPI, Uvicorn, Axios (for API tests)
+- **Frontend**: React 18, Vite, Tailwind CSS, Lucide React
+- **Data Science**: NumPy, Matplotlib, PIL
+
+## 6. Dataset
+The system uses the **CIFAR-10** dataset, which consists of 60,000 color images in 10 mutually exclusive classes:
+- `airplane`, `automobile`, `bird`, `cat`, `deer`, `dog`, `frog`, `horse`, `ship`, `truck`
+
+The dataset is automatically handled and downloaded by the `utils/data_loader.py` script upon first execution.
 
 ---
-
-## Badges Quick Links
-- Stars: https://github.com/neeraj214/hybrid-cnn-rnn-image-classification/stargazers
-- Forks: https://github.com/neeraj214/hybrid-cnn-rnn-image-classification/network/members
-- Issues: https://github.com/neeraj214/hybrid-cnn-rnn-image-classification/issues
-- Pull Requests: https://github.com/neeraj214/hybrid-cnn-rnn-image-classification/pulls
-
-## Contributing
-Contributions are welcome! Please open an issue to discuss changes or submit a pull request.
-
----
-
-## How to Run Training
-
-1. Create and activate a virtual environment
-
-   Windows PowerShell:
-   ```
-   python -m venv venv
-   .\venv\Scripts\Activate.ps1
-   ```
-
-2. Install dependencies
-   ```
-   python -m pip install -r requirements.txt
-   ```
-
-3. Run the training script
-   ```
-   python -m training.train
-   ```
-
-Notes:
-- The CIFAR‑10 dataset is automatically downloaded to [dataset](file:///c:/Users/neera/CNN%20and%20RNN/hybrid-cnn-rnn-image-classification/dataset).
-- Model checkpoints are saved to [models/checkpoints](file:///c:/Users/neera/CNN%20and%20RNN/hybrid-cnn-rnn-image-classification/models/checkpoints).
-- On Windows, if you encounter DataLoader worker issues, set `num_workers=0` in `get_data_loaders`.
+*Developed by [Neeraj Negi](https://github.com/neeraj214)*
