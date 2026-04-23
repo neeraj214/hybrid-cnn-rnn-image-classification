@@ -1,13 +1,17 @@
 import React, { useState, useRef } from 'react';
+import axios from 'axios';
 
-const ImageUpload = () => {
+const ImageUpload = ({ onResult }) => {
   const [selectedImage, setSelectedImage] = useState(null);
   const [previewUrl, setPreviewUrl] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
   const fileInputRef = useRef(null);
 
   const handleFileSelect = (file) => {
     if (file && file.type.startsWith('image/')) {
       setSelectedImage(file);
+      setError(null);
       const reader = new FileReader();
       reader.onloadend = () => {
         setPreviewUrl(reader.result);
@@ -19,6 +23,30 @@ const ImageUpload = () => {
   const onFileChange = (e) => {
     const file = e.target.files[0];
     handleFileSelect(file);
+  };
+
+  const handleClassify = async () => {
+    if (!selectedImage) return;
+
+    setLoading(true);
+    setError(null);
+
+    const formData = new FormData();
+    formData.append('file', selectedImage);
+
+    try {
+      const response = await axios.post('http://localhost:8000/predict', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+      onResult(response.data);
+    } catch (err) {
+      console.error('Classification error:', err);
+      setError('Failed to classify image. Please make sure the backend server is running.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const onDragOver = (e) => {
@@ -81,17 +109,30 @@ const ImageUpload = () => {
         )}
       </div>
 
-      <div className="mt-8 flex justify-center">
+      <div className="mt-8 flex flex-col items-center">
         <button
-          disabled={!selectedImage}
-          className={`px-8 py-3 rounded-xl font-bold text-white shadow-lg transition-all duration-300 ${
-            selectedImage
+          onClick={handleClassify}
+          disabled={!selectedImage || loading}
+          className={`px-8 py-3 rounded-xl font-bold text-white shadow-lg transition-all duration-300 flex items-center space-x-2 ${
+            selectedImage && !loading
               ? 'bg-blue-600 hover:bg-blue-700 hover:-translate-y-1 hover:shadow-blue-200 active:scale-95'
               : 'bg-gray-300 cursor-not-allowed'
           }`}
         >
-          Classify Image
+          {loading && (
+            <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+          )}
+          <span>{loading ? 'Classifying...' : 'Classify Image'}</span>
         </button>
+
+        {error && (
+          <p className="mt-4 text-red-500 text-sm font-medium animate-in fade-in slide-in-from-top-2">
+            {error}
+          </p>
+        )}
       </div>
     </div>
   );
