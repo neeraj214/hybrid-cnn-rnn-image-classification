@@ -143,7 +143,6 @@ const ImageUpload = ({ onResult }) => {
       </div>
     </div>
   );
-  );
 };
 
 export default ImageUpload;
