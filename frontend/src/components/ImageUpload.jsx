@@ -35,7 +35,7 @@ const ImageUpload = ({ onResult }) => {
     formData.append('file', selectedImage);
 
     try {
-      const response = await axios.post('http://localhost:8000/predict', formData, {
+      const response = await axios.post('https://neeraj214-hybrid-cnn-rnn-backend.hf.space/predict', formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
