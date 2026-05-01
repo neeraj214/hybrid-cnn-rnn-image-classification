@@ -4,11 +4,12 @@ __pycache__/
 .ipynb_checkpoints/
 dataset/*
 !dataset/.gitkeep
-checkpoints/
-**/checkpoints/
+# Allow model checkpoints
+!models/checkpoints/cnn_lstm_model.pth
 !models/checkpoints/
 models/checkpoints/*
 !models/checkpoints/.gitkeep
+!models/checkpoints/cnn_lstm_model.pth
 models/*.pth
 models/*.pt
 *.ckpt
